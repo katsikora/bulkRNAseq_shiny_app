@@ -98,7 +98,7 @@ server <- function(input, output) {
         output$datHead<-renderTable(head(inDat),caption="Original unnormalized input data",caption.placement = getOption("xtable.caption.placement", "top"))
 
         ##get genome and annotation version from a featureCounts log file
-        logPath<-dbFile$PathToLog[(dbFile$Group %in% inGroup) & (dbFile$ProjectID %in% inProjectID)]
+        logPath<-dbFile$PathToLog[intersect(match(inGroup,dbFile$Group),match(inProjectID,dbFile$ProjectID))]
         org<-sub("_ensembl/.+.bam","",sub("/package.+/organisms/","",system(paste0('grep -m 1 \"/data/repository/organisms\" ',logPath),intern=TRUE)))
         output$organism<-renderText(paste("Detected genome is ",org))
         annot<-sub("/genes.gtf.+.bam","",sub("/package.+/data/repository/organisms/.+/ensembl/","",system(paste0('grep -m 1 \"/data/repository/organisms\" ',logPath),intern=TRUE)))
