@@ -201,7 +201,7 @@ server <- function(input, output) {
        
     output$resultPanels<-renderUI({myTabs<-list(tabPanel(title="WalkThrough",
                                                       fluidPage(
-                                                          uiOutput("walkThrough"),
+                                                          box(title="Walkthrough",uiOutput("walkThrough")),
                                                           box(title="Miscellaneous information",textOutput("FAQ"))                                                          
                                                                )
                                                           ),
