@@ -3,7 +3,7 @@ require(shiny)
 require(shinydashboard)
 require(rhandsontable)
 
-ui <- dashboardPage(
+ui <- function(request) {dashboardPage(
     dashboardHeader(title = "Dataset selection"),
     ## Sidebar content
     dashboardSidebar(
@@ -22,8 +22,7 @@ ui <- dashboardPage(
                
     )
 
-)
-
+ )}
 
 server <- function(input, output) {
     
@@ -41,6 +40,8 @@ server <- function(input, output) {
     require(ggplot2,lib.loc=Rlib)
     require(reshape2,lib.loc=Rlib)
     require(biomaRt,lib.loc=Rlib)
+
+    output$sessionInfo <- renderPrint({capture.output(sessionInfo())},quoted=TRUE)
 
     ##barplots mean +/- stdev
     summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
@@ -227,6 +228,11 @@ server <- function(input, output) {
                                                           box(title = "Plot controls",selectInput("XlabelChoiceBarplot", "Gene label",choices=c("GeneID","GeneSymbol"),selected="GeneID")),
                                                           box(title="Method Description",renderText("Mean Log2 counts per million are plotted with standard deviation as error bars."))
                                                           
+                                                               )
+                                                          ),
+                                                  tabPanel(title="sessionInfo",
+                                                      fluidPage(
+                                                          verbatimTextOutput("sessionInfo")                                                          
                                                                )
                                                           )
 

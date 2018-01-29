@@ -41,6 +41,8 @@ server <- function(input, output) {
     require(reshape2,lib.loc=Rlib)
     require(biomaRt,lib.loc=Rlib)
 
+    output$sessionInfo <- renderPrint({capture.output(sessionInfo())})
+
     ##barplots mean +/- stdev
     summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
                       conf.interval=.95, .drop=TRUE) {
@@ -226,6 +228,11 @@ server <- function(input, output) {
                                                           box(title = "Plot controls",selectInput("XlabelChoiceBarplot", "Gene label",choices=c("GeneID","GeneSymbol"),selected="GeneID")),
                                                           box(title="Method Description",renderText("Mean Log2 counts per million are plotted with standard deviation as error bars."))
                                                           
+                                                               )
+                                                          ),
+                                                  tabPanel(title="sessionInfo",
+                                                      fluidPage(
+                                                          verbatimTextOutput("sessionInfo")                                                          
                                                                )
                                                           )
 
