@@ -10,6 +10,7 @@ ui <- function(request) {dashboardPage(
 
         textInput(inputId="group", label="Group", value = "", width = NULL, placeholder = NULL),
         textInput(inputId="projectid", label="ProjectID", value = "", width = NULL, placeholder = NULL),
+        fileInput(inputId="countfile",label="CountFile",multiple=FALSE,accept=NULL,buttonLabel = "Browse...", placeholder = "No file selected"),
         actionButton("submitinput", "Retrieve dataset"),
         fileInput(inputId="file1", label="UserFile", multiple = FALSE, accept = NULL, width = NULL,buttonLabel = "Browse...", placeholder = "No file selected"),
         textOutput("fileDescription"),
@@ -26,7 +27,10 @@ ui <- function(request) {dashboardPage(
 
 server <- function(input, output) {
     
-    output$fileDescription<-renderText("Please provide a one-column headerless txt file with ensemble gene IDs you would like to analyze.")
+    output$walkThrough<-renderUI(HTML("<ul><li>1.Complete the Group and ProjectID fields (currently only for Boehm department) OR provide path to feature counts count table to CountFile. Click on retrieve dataset. Your data will appear in the InputData tab.</li><li>2.Provide a UserFile with ensembl gene IDs to analyze.</li><li>3.If necessary, relabel sample IDs to desired plotting IDs in the corresponding interactive sampleInfo table column, in the InputData tab. Provide group information in the group column.Click on Run analysis. Your results will appear in the corresponding tabs.</li><li>The order of providing the information matters!</li></ul>"))
+    output$FAQ<-renderText("Currently supported organisms are Homo sapiens, Mus musculus, Danio rerio, Drosophila melanogaster.\n Merging data from multiple datasets or batch effect removal are currenlty not supported.\n For questions, bug reports or feature requests, contact sikora@ie-freiburg.mpg.de.\n For reporting issues or pull requests on GitHub, go to https://github.com/katsikora/bulkRNAseq_shiny_app .")
+    
+    output$fileDescription<-renderText("UserFile: Please provide a one-column headerless txt file with ensemble gene IDs you would like to analyze.\n CountFile: Please provide an integer count table with ensembl gene IDs as rownames and sample IDs as colnames.")
 
  
 ##########################read/load processed data from a database##################
@@ -41,7 +45,7 @@ server <- function(input, output) {
     require(reshape2,lib.loc=Rlib)
     require(biomaRt,lib.loc=Rlib)
 
-    output$sessionInfo <- renderPrint({capture.output(sessionInfo())},quoted=TRUE)
+    output$sessionInfo <- renderPrint({capture.output(sessionInfo())})
 
     ##barplots mean +/- stdev
     summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
@@ -90,21 +94,26 @@ server <- function(input, output) {
 
     observeEvent(input$submitinput, {
         
-
-        inGroup<-isolate(input$group)
-        inProjectID<-isolate(input$projectid)
+        if((input$group!="")&(input$projectid!="")){
+            inGroup<-isolate(input$group)
+            inProjectID<-isolate(input$projectid)
   
-        datPath<-dbFile$PathToData[(dbFile$Group %in% inGroup) & (dbFile$ProjectID %in% inProjectID)]
-        print(datPath)
+            datPath<-dbFile$PathToData[(dbFile$Group %in% inGroup) & (dbFile$ProjectID %in% inProjectID)]
+            print(datPath)
+            ##get genome and annotation version from a featureCounts log file
+            logPath<-dbFile$PathToLog[(dbFile$Group %in% inGroup) & (dbFile$ProjectID %in% inProjectID)]
+            org<-sub("_ensembl/.+.bam","",sub("/package.+/organisms/","",system(paste0('grep -m 1 \"/data/repository/organisms\" ',logPath),intern=TRUE)))
+            output$organism<-renderText(paste("Detected genome is ",org))
+            annot<-sub("/genes.gtf.+.bam","",sub("/package.+/data/repository/organisms/.+/ensembl/","",system(paste0('grep -m 1 \"/data/repository/organisms\" ',logPath),intern=TRUE)))}
+        else if (!is.null(input$countfile)){
+             countFile<-isolate(input$countfile)
+             datPath<-countFile$datapath  
+             print(datPath)
+             annot<-"not available"}
         inDat<-fread(input=datPath,header=TRUE,sep="\t")
         ##render the head
         output$datHead<-renderTable(head(inDat),caption="Original unnormalized input data",caption.placement = getOption("xtable.caption.placement", "top"))
 
-        ##get genome and annotation version from a featureCounts log file
-        logPath<-dbFile$PathToLog[(dbFile$Group %in% inGroup) & (dbFile$ProjectID %in% inProjectID)]
-        org<-sub("_ensembl/.+.bam","",sub("/package.+/organisms/","",system(paste0('grep -m 1 \"/data/repository/organisms\" ',logPath),intern=TRUE)))
-        output$organism<-renderText(paste("Detected genome is ",org))
-        annot<-sub("/genes.gtf.+.bam","",sub("/package.+/data/repository/organisms/.+/ensembl/","",system(paste0('grep -m 1 \"/data/repository/organisms\" ',logPath),intern=TRUE)))
         output$annotation<-renderText(paste("Detected annotation is ",annot))
         ##or grep for organism from ensembl gene ids:
         emv<-c("ENSDARG"="drerio","ENSMUS"="mmusculus","ENSG"="hsapiens","FBgn"="dmelanogaster")
@@ -190,7 +199,13 @@ server <- function(input, output) {
     
 
        
-    output$resultPanels<-renderUI({myTabs<-list(tabPanel(title="InputData",
+    output$resultPanels<-renderUI({myTabs<-list(tabPanel(title="WalkThrough",
+                                                      fluidPage(
+                                                          uiOutput("walkThrough"),
+                                                          box(title="Miscellaneous information",textOutput("FAQ"))                                                          
+                                                               )
+                                                          ),
+                                                  tabPanel(title="InputData",
                                                       fluidPage(
                                                           fluidRow(
                                                               tableOutput("datHead"),
@@ -243,4 +258,4 @@ server <- function(input, output) {
 
 }
 
-shinyApp(ui, server,enableBookmarking="server")
+shinyApp(ui, server,enableBookmarking="url")
