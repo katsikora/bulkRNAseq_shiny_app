@@ -12,7 +12,8 @@ ui <- dashboardPage(
         textInput(inputId="projectid", label="ProjectID", value = "", width = NULL, placeholder = NULL),
         actionButton("submitinput", "Retrieve dataset"),
         fileInput(inputId="file1", label="UserFile", multiple = FALSE, accept = NULL, width = NULL,buttonLabel = "Browse...", placeholder = "No file selected"),
-        textOutput("fileDescription")
+        textOutput("fileDescription"),
+        bookmarkButton()
         ),
         
     dashboardBody(
@@ -30,20 +31,21 @@ server <- function(input, output) {
 
  
 ##########################read/load processed data from a database##################
-    require("data.table")
-    require("edgeR")
-    require("limma")
-    require("car")
-    require(gplots)
-    require(RColorBrewer)
-    require(ggplot2)
-    require(reshape2)
-    require(biomaRt)
+    Rlib="/data/manke/repository/scripts/DNA_methylation/Rlibs.3.3.1"
+    require("data.table",lib.loc=Rlib)
+    require("limma",lib.loc=Rlib)
+    require("edgeR",lib.loc=Rlib)
+    require("car",lib.loc=Rlib)
+    require(gplots,lib.loc=Rlib)
+    require(RColorBrewer,lib.loc=Rlib)
+    require(ggplot2,lib.loc=Rlib)
+    require(reshape2,lib.loc=Rlib)
+    require(biomaRt,lib.loc=Rlib)
 
     ##barplots mean +/- stdev
     summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
                       conf.interval=.95, .drop=TRUE) {
-        require(plyr)
+        require(plyr,lib.loc=Rlib)
 
     # New version of length which can handle NA's: if na.rm==T, don't count them
         length2 <- function (x, na.rm=FALSE) {
@@ -83,7 +85,7 @@ server <- function(input, output) {
 
     ##query database using group/projectid fields
 
-    dbFile<-read.table("/home/sikora/works/manke/shiny_test/data.boehm.DB.csv",header=TRUE,sep="\t",quote="",as.is=TRUE)
+    dbFile<-read.table("/data/manke/group/shiny/sikora/aux_files/data.boehm.DB.csv",header=TRUE,sep="\t",quote="",as.is=TRUE)
 
     observeEvent(input$submitinput, {
         
@@ -98,7 +100,7 @@ server <- function(input, output) {
         output$datHead<-renderTable(head(inDat),caption="Original unnormalized input data",caption.placement = getOption("xtable.caption.placement", "top"))
 
         ##get genome and annotation version from a featureCounts log file
-        logPath<-dbFile$PathToLog[intersect(match(inGroup,dbFile$Group),match(inProjectID,dbFile$ProjectID))]
+        logPath<-dbFile$PathToLog[(dbFile$Group %in% inGroup) & (dbFile$ProjectID %in% inProjectID)]
         org<-sub("_ensembl/.+.bam","",sub("/package.+/organisms/","",system(paste0('grep -m 1 \"/data/repository/organisms\" ',logPath),intern=TRUE)))
         output$organism<-renderText(paste("Detected genome is ",org))
         annot<-sub("/genes.gtf.+.bam","",sub("/package.+/data/repository/organisms/.+/ensembl/","",system(paste0('grep -m 1 \"/data/repository/organisms\" ',logPath),intern=TRUE)))
@@ -151,11 +153,11 @@ server <- function(input, output) {
                 rownames(design)<-sampleInfo$Plotting_ID
                 dge <- DGEList(counts=countdata)
                 dge <- calcNormFactors(dge)
-                v <- voom(dge,design,plot=TRUE)
+                v <- voom(dge,design,plot=FALSE)
                 normCounts<-v$E
                 selNormCounts<-normCounts[match(inTab$V1,rownames(normCounts)),]
                 output$NormCounts<-renderTable(selNormCounts,include.rownames=TRUE,caption="Normalized Log2CPM",caption.placement = getOption("xtable.caption.placement", "top"))
-                output$downloadNormCounts <- downloadHandler(filename = "NormalizedLog2CPM.xls",content=function(file) {write.table(selNormCounts,file,row.names = TRUE,sep="\t",quote=FALSE)})
+                output$downloadNormCounts <- downloadHandler(filename = "NormalizedLog2CPM.xls",content=function(file) {write.table(selNormCounts,file,row.names = TRUE,sep="\t",quote=FALSE,dec = ",")})
                 ##annotate with external gene symbol
                 bmk<-getBM(attributes=c("ensembl_gene_id","external_gene_name"),filters="ensembl_gene_id",values=rownames(selNormCounts),mart=ensembl.xx)
                 plotdata<-as.data.frame(selNormCounts,stringsAsFactors=FALSE)
@@ -235,4 +237,4 @@ server <- function(input, output) {
 
 }
 
-shinyApp(ui, server)
+shinyApp(ui, server,enableBookmarking="server")
