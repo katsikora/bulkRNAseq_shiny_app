@@ -1,8 +1,8 @@
 ## app.R ##
-require(shiny)
-require(shinydashboard)
-require(rhandsontable)
-
+Rlib="/data/manke/repository/scripts/DNA_methylation/Rlibs.3.3.1"
+require(shiny,lib.loc=Rlib)
+require(shinydashboard,lib.loc=Rlib)
+require(rhandsontable,lib.loc=Rlib)
 ui <- function(request) {dashboardPage(
     dashboardHeader(title = "Dataset selection"),
     ## Sidebar content
@@ -34,7 +34,7 @@ server <- function(input, output, session) {
 
  
 ##########################read/load processed data from a database##################
-    Rlib="/data/manke/repository/scripts/DNA_methylation/Rlibs.3.3.1"
+    #Rlib="/data/manke/repository/scripts/DNA_methylation/Rlibs.3.3.1"
     require("data.table",lib.loc=Rlib)
     require("limma",lib.loc=Rlib)
     require("edgeR",lib.loc=Rlib)
