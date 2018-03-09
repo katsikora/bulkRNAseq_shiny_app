@@ -90,7 +90,7 @@ server <- function(input, output, session) {
 
     ##query database using group/projectid fields
 
-    dbFile<-read.table("/data/manke/group/shiny/sikora/aux_files/data.boehm.DB.csv",header=TRUE,sep="\t",quote="",as.is=TRUE)
+    dbFile<-read.table("/data/manke/group/shiny/sikora/aux_files/RNAseq.DB.csv",header=TRUE,sep="\t",quote="",as.is=TRUE)
 
     observeEvent(input$submitinput, {
         
