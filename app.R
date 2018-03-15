@@ -117,7 +117,7 @@ server <- function(input, output, session) {
         output$annotation<-renderText(paste("Detected annotation is ",annot))
         ##or grep for organism from ensembl gene ids:
         emv<-c("ENSDARG"="drerio","ENSMUS"="mmusculus","ENSG"="hsapiens","FBgn"="dmelanogaster")
-        ems<-emv[grep(gsub("[0-9].+","",inDat$V1[1]),names(emv))]
+        ems<-emv[grep(gsub("[0-9].+","",inDat$V1[5]),names(emv))]
         ensembl.xx<-useMart(biomart="ensembl",dataset=paste0(ems,"_gene_ensembl"))#,host="aug2017.archive.ensembl.org"
 
 ###############initiate reactive table to collect sample information ###############
