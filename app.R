@@ -110,14 +110,21 @@ server <- function(input, output, session) {
              datPath<-countFile$datapath  
              print(datPath)
              annot<-"not available"}
-        inDat<-fread(input=datPath,header=TRUE,sep="\t")
+        #########IN TESTING###########################################
+        inDr1<-read.table(datPath,header=TRUE,sep="\t",as.is=TRUE,quote="",nrows=1)
+        inDr2<-suppressWarnings(fread(datPath,header=TRUE,sep="\t",nrows=1))
+        if(ncol(inDr1)==ncol(inDr2)){cnv<-colnames(inDr1)
+                                     cnv[1]<-"GeneID"}else{cnv<-c("GeneID",colnames(inDr1))}
+        ###### END IN TESTING #####################################
+        inDat<-fread(input=datPath,header=FALSE,sep="\t",skip=1)
+        colnames(inDat)<-cnv
         ##render the head
         output$datHead<-renderTable(head(inDat),caption="Original unnormalized input data",caption.placement = getOption("xtable.caption.placement", "top"))
 
         output$annotation<-renderText(paste("Detected annotation is ",annot))
         ##or grep for organism from ensembl gene ids:
         emv<-c("ENSDARG"="drerio","ENSMUS"="mmusculus","ENSG"="hsapiens","FBgn"="dmelanogaster")
-        ems<-emv[grep(gsub("[0-9].+","",inDat$V1[5]),names(emv))]
+        ems<-emv[grep(gsub("[0-9].+","",inDat$GeneID[5]),names(emv))]
         ensembl.xx<-useMart(biomart="ensembl",dataset=paste0(ems,"_gene_ensembl"))#,host="aug2017.archive.ensembl.org"
 
 ###############initiate reactive table to collect sample information ###############
@@ -156,7 +163,7 @@ server <- function(input, output, session) {
 
                 countdata<-as.data.frame(inDat[,match(sampleInfo$SampleID,colnames(inDat)),with=FALSE],stringsAsFactors=FALSE)
                 colnames(countdata)<-sampleInfo$PlottingID
-                rownames(countdata)<-inDat$V1
+                rownames(countdata)<-inDat$GeneID
                 output$countDatHead<-renderTable(head(countdata),include.rownames=TRUE,caption="Relabeled unnormalized input data",caption.placement = getOption("xtable.caption.placement", "top"),width=500)
 
                 design<-model.matrix(~1+Group,data=sampleInfo)
