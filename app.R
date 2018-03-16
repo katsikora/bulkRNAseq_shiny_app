@@ -110,17 +110,18 @@ server <- function(input, output, session) {
              datPath<-countFile$datapath  
              print(datPath)
              annot<-"not available"}
-        #########IN TESTING###########################################
         inDr1<-read.table(datPath,header=TRUE,sep="\t",as.is=TRUE,quote="",nrows=1)
         inDr2<-suppressWarnings(fread(datPath,header=TRUE,sep="\t",nrows=1))
         if(ncol(inDr1)==ncol(inDr2)){cnv<-colnames(inDr1)
                                      cnv[1]<-"GeneID"}else{cnv<-c("GeneID",colnames(inDr1))}
-        ###### END IN TESTING #####################################
         inDat<-fread(input=datPath,header=FALSE,sep="\t",skip=1)
         colnames(inDat)<-cnv
+        ####handle gencode####
+        if(grepl("gencode",annot)){annot<-paste("gencode",gsub("/package.+/gencode/","",annot),sep=" ")
+                                   inDat$GeneID<-gsub("\\.[0-9]+","",inDat$GeneID)}else{annot<-paste("ensembl",annot,sep=" ")}
         ##render the head
         output$datHead<-renderTable(head(inDat),caption="Original unnormalized input data",caption.placement = getOption("xtable.caption.placement", "top"))
-
+                          
         output$annotation<-renderText(paste("Detected annotation is ",annot))
         ##or grep for organism from ensembl gene ids:
         emv<-c("ENSDARG"="drerio","ENSMUSG"="mmusculus","ENSG"="hsapiens","FBgn"="dmelanogaster")
