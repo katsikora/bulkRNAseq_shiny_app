@@ -112,7 +112,7 @@ server <- function(input, output, session) {
              annot<-"not available"}
         #########IN TESTING###########################################
         inDr1<-read.table(datPath,header=TRUE,sep="\t",as.is=TRUE,quote="",nrows=1)
-        inDr2<-fread(datPath,header=TRUE,sep="\t",nrows=1)
+        inDr2<-suppressWarnings(fread(datPath,header=TRUE,sep="\t",nrows=1))
         if(ncol(inDr1)==ncol(inDr2)){cnv<-colnames(inDr1)
                                      cnv[1]<-"GeneID"}else{cnv<-c("GeneID",colnames(inDr1))}
         ###### END IN TESTING #####################################
