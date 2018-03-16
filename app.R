@@ -1,5 +1,5 @@
 ## app.R ##
-Rlib="/data/manke/repository/scripts/DNA_methylation/Rlibs.3.3.1"
+Rlib="/data/boehm/group/shiny_apps/Rlibs3.4.0"
 require(shiny,lib.loc=Rlib)
 require(shinydashboard,lib.loc=Rlib)
 require(rhandsontable,lib.loc=Rlib)
@@ -43,7 +43,8 @@ server <- function(input, output, session) {
     require(RColorBrewer,lib.loc=Rlib)
     require(ggplot2,lib.loc=Rlib)
     require(reshape2,lib.loc=Rlib)
-    require(biomaRt,lib.loc=Rlib)
+    library("biomaRt",lib.loc=Rlib)#,lib.loc=Rlib
+    #output$debug<-renderPrint({capture.output(library("biomaRt",lib.loc=Rlib,logical.return=TRUE))})#,logical.return=TRUE#,lib.loc=Rlib
 
     output$sessionInfo <- renderPrint({capture.output(sessionInfo())})
 
@@ -126,7 +127,7 @@ server <- function(input, output, session) {
         ##or grep for organism from ensembl gene ids:
         emv<-c("ENSDARG"="drerio","ENSMUSG"="mmusculus","ENSG"="hsapiens","FBgn"="dmelanogaster")
         ems<-emv[grep(gsub("[0-9].+","",inDat$GeneID[5]),names(emv))]
-        ensembl.xx<-useMart(biomart="ensembl",dataset=paste0(ems,"_gene_ensembl"))#,host="aug2017.archive.ensembl.org"
+        ensembl.xx<-useMart(biomart="ensembl",dataset=paste0(ems,"_gene_ensembl"))#,host="aug2017.archive.ensembl.org",host = "oct2016.archive.ensembl.org"
 
 ###############initiate reactive table to collect sample information ###############
 
@@ -255,7 +256,8 @@ server <- function(input, output, session) {
                                                           ),
                                                   tabPanel(title="sessionInfo",
                                                       fluidPage(
-                                                          verbatimTextOutput("sessionInfo")                                                          
+                                                          verbatimTextOutput("sessionInfo")
+                                                          #verbatimTextOutput("debug")                                                          
                                                                )
                                                           )
 
