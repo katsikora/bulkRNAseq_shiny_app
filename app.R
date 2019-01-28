@@ -1,8 +1,8 @@
 ## app.R ##
-Rlib="/data/boehm/group/shiny_apps/Rlibs3.4.0"
-require(shiny,lib.loc=Rlib)
-require(shinydashboard,lib.loc=Rlib)
-require(rhandsontable,lib.loc=Rlib)
+Rlib="/data/boehm/group/shiny_apps/Rlibs3.5.0"
+library(shiny,lib.loc=Rlib)
+library(shinydashboard,lib.loc=Rlib)
+library(rhandsontable,lib.loc=Rlib)
 ui <- function(request) {dashboardPage(
     dashboardHeader(title = "Dataset selection"),
     ## Sidebar content
@@ -35,14 +35,14 @@ server <- function(input, output, session) {
  
 ##########################read/load processed data from a database##################
     #Rlib="/data/manke/repository/scripts/DNA_methylation/Rlibs.3.3.1"
-    require("data.table",lib.loc=Rlib)
-    require("limma",lib.loc=Rlib)
-    require("edgeR",lib.loc=Rlib)
-    require("car",lib.loc=Rlib)
-    require(gplots,lib.loc=Rlib)
-    require(RColorBrewer,lib.loc=Rlib)
-    require(ggplot2,lib.loc=Rlib)
-    require(reshape2,lib.loc=Rlib)
+    library("data.table",lib.loc=Rlib)
+    library("limma",lib.loc=Rlib)
+    library("edgeR",lib.loc=Rlib)
+    library("car",lib.loc=Rlib)
+    library(gplots,lib.loc=Rlib)
+    library(RColorBrewer,lib.loc=Rlib)
+    library(ggplot2,lib.loc=Rlib)
+    library(reshape2,lib.loc=Rlib)
     library("biomaRt",lib.loc=Rlib)#,lib.loc=Rlib
     #output$debug<-renderPrint({capture.output(library("biomaRt",lib.loc=Rlib,logical.return=TRUE))})#,logical.return=TRUE#,lib.loc=Rlib
 
@@ -51,7 +51,7 @@ server <- function(input, output, session) {
     ##barplots mean +/- stdev
     summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
                       conf.interval=.95, .drop=TRUE) {
-        require(plyr,lib.loc=Rlib)
+        library(plyr,lib.loc=Rlib)
 
     # New version of length which can handle NA's: if na.rm==T, don't count them
         length2 <- function (x, na.rm=FALSE) {
